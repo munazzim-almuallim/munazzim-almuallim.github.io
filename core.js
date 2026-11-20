@@ -213,9 +213,9 @@ App.saveConfig = async patch => {
 App.updateRegistry = async force => {
   if (Store.mode !== 'cloud' || !S.profile || !S.profile.name) return;
   const p = S.profile;
-  const row = {user_id: S.uid, name:p.name, school:p.school||'', subject:p.subject||'', stage:p.stage||'', email:p.email || (App.isCodeAccount && App.isCodeAccount() ? '' : S.email) || '', theme:p.theme||'', last_active:new Date().toISOString(),
+  const row = {user_id: S.uid, name:p.name, school:p.school||'', subject:p.subject||'', stage:p.stage||'', phone:p.phone||'', email:p.email || (App.isCodeAccount && App.isCodeAccount() ? '' : S.email) || '', theme:p.theme||'', last_active:new Date().toISOString(),
     counts:{tasks:S.tasks.length, done:S.tasks.filter(t => t.status === 'done').length, plans:S.plans.length, notes:S.notes.length, links:S.links.length, files:S.files.length, events:S.events.length, schedules:S.schedules.length}};
-  const sig = JSON.stringify([row.name,row.school,row.subject,row.stage,row.email,row.theme,row.counts]);
+  const sig = JSON.stringify([row.name,row.school,row.subject,row.stage,row.phone,row.email,row.theme,row.counts]);
   if (!force && sig === App._regSig && Date.now() - (App._regAt||0) < 30*60000) return;
   App._regSig = sig; App._regAt = Date.now();
   try { const {error} = await Store.sb.from('profiles').upsert(row); if (error) throw error; } catch(e) { console.warn('registry', e); }
