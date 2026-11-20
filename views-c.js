@@ -271,6 +271,7 @@ App.view('admin', {title:'لوحة المطور', guard: () => S.isOwner, render
   const active7 = rows.filter(r => Date.now() - (r.lastActive || 0) < 7 * 86400000).length;
   const thc = {}; rows.forEach(r => { if (r.theme) thc[r.theme] = (thc[r.theme] || 0) + 1; });
   el.innerHTML = `<div class="card small" style="margin-bottom:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">${ic('shield')}<span style="flex:1 1 240px">هذه الصفحة لا تظهر إلا للمطور، وبياناتها محمية بصلاحيات على الخادم (Row Level Security) تمنع أي حساب آخر من قراءتها. أما المهام والملفات والملاحظات فخاصة بكل معلم ولا تُعرض هنا.</span>${Store.mode === 'cloud' ? `<button class="btn sm" id="adRef">تحديث</button>` : ''}<button class="btn sm primary" id="adRep">${ic('printer')}تقرير للمديرة</button></div>
+  ${(App.pinReqs || []).length ? `<div class="card" style="margin-bottom:16px;border:2px solid var(--warn)"><h3>${ic('bell')}طلبات رقم سري جديد (${App.pinReqs.length})</h3><div class="tbl-wrap"><table class="data stack"><thead><tr><th>الاسم</th><th>الجوال</th><th>وقت الطلب</th><th></th></tr></thead><tbody>${App.pinReqs.map(q => `<tr><td data-l="الاسم"><b>${esc(q.name)}</b></td><td data-l="الجوال" dir="ltr">${esc(q.phone || '—')}</td><td data-l="وقت الطلب">${esc(D.fmtDT(D.ymd(new Date(q.created_at)) + 'T' + D.hm(new Date(q.created_at))))}</td><td data-l=""><div class="row" style="gap:6px;flex-wrap:nowrap"><button class="btn sm primary" data-req-pin="${esc(q.id)}">${ic('edit')}إعطاء رقم جديد</button><button class="btn sm ghost" data-req-done="${esc(q.id)}">${ic('check')}تم</button></div></td></tr>`).join('')}</tbody></table></div></div>` : ''}
   ${Store.mode !== 'cloud' ? `<div class="card" style="margin-bottom:16px">${App.empty('alert', 'وضع التجربة', 'تظهر بيانات المستخدمين بعد ربط المنصة بقاعدة البيانات.')}</div>` : ''}
   <div class="stat-row"><div class="stat"><b>${rows.length}</b><span>المستخدمون المسجلون</span></div><div class="stat"><b>${active7}</b><span>نشطون خلال 7 أيام</span></div><div class="stat"><b>${Object.keys(schools).length}</b><span>المدارس</span></div><div class="stat"><b>${sum('tasks')}</b><span>إجمالي المهام (${sum('done')} مكتملة)</span></div></div>
   <div class="card" style="margin-bottom:16px"><h3>${ic('user')}المستخدمون</h3>${rows.length ? `<div class="tbl-wrap"><table class="data stack"><thead><tr><th>الاسم</th><th>المدرسة</th><th>المادة</th><th>المرحلة</th><th>البريد</th><th>التسجيل</th><th>آخر نشاط</th><th>مهام</th><th>خطط</th><th>ملفات</th><th></th></tr></thead><tbody>${rows.map(r => `<tr><td data-l="الاسم"><b>${esc(r.name)}</b></td><td data-l="المدرسة">${esc(r.school)}</td><td data-l="المادة">${esc(r.subject)}</td><td data-l="المرحلة">${esc(r.stage)}</td><td data-l="البريد" dir="ltr">${esc(r.email)}</td><td data-l="التسجيل">${r.joined ? esc(D.short(new Date(r.joined))) : ''}</td><td data-l="آخر نشاط">${r.lastActive ? esc(D.fmtDT(D.ymd(new Date(r.lastActive)) + 'T' + D.hm(new Date(r.lastActive)))) : ''}</td><td class="n" data-l="مهام">${(r.counts || {}).tasks || 0}</td><td class="n" data-l="خطط">${(r.counts || {}).plans || 0}</td><td class="n" data-l="ملفات">${(r.counts || {}).files || 0}</td><td data-l="">${r.user_id && r.user_id !== S.uid ? `<div class="row" style="gap:6px;flex-wrap:nowrap"><button class="btn sm" data-pin-user="${esc(r.user_id)}" data-nm="${esc(r.name || '')}">${ic('edit')}رقم سري جديد</button><button class="btn sm ghost danger" data-del-user="${esc(r.user_id)}" data-nm="${esc(r.name || '')}">${ic('trash')}حذف</button></div>` : ''}</td></tr>`).join('')}</tbody></table></div>` : '<p class="muted small">لم يسجّل أي مستخدم بعد.</p>'}</div>
@@ -285,6 +286,21 @@ App.view('admin', {title:'لوحة المطور', guard: () => S.isOwner, render
   </div>`;
   const saved = () => App.toast('تم حفظ الإعدادات');
   $('#adRep', el).onclick = () => principalReport(rows);
+  const reqDone = async id => { await Store.sb.from('pin_requests').delete().eq('id', id); App.pinReqs = (App.pinReqs || []).filter(q => String(q.id) !== String(id)); App.flush(); };
+  $$('[data-req-done]', el).forEach(b => b.onclick = () => reqDone(b.dataset.reqDone));
+  $$('[data-req-pin]', el).forEach(b => b.onclick = async () => {
+    const q = (App.pinReqs || []).find(x => String(x.id) === b.dataset.reqPin); if (!q) return;
+    const nn = App.normName ? App.normName(q.name) : q.name;
+    const hit = (App.registry || []).filter(r => r.user_id !== S.uid && [r.name, r.login_name, r.loginName].some(x => x && (App.normName ? App.normName(x) : x) === nn));
+    if (!hit.length) { App.toast('ما لقيت معلمة مسجّلة بنفس هذا الاسم بالضبط. دوري اسمها في جدول المستخدمين تحت واضغطي «رقم سري جديد» جنبه.', true); return; }
+    const pin = await App.prompt('رقم سري جديد لـ «' + q.name + '»', '', 'اكتبي 4 أرقام جديدة، وبلّغي المعلمة فيها');
+    if (pin == null) return;
+    if (!/^\d{4}$/.test(pin)) { App.toast('الرقم السري لازم يكون 4 أرقام', true); return; }
+    const {error} = await Store.sb.rpc('admin_reset_pin', {target: hit[0].user_id, pin});
+    if (error) { App.toast('تعذّر التغيير: ' + error.message, true); return; }
+    await reqDone(q.id);
+    App.toast('تم ✅ الرقم السري الجديد لـ «' + q.name + '» هو ' + pin + (q.phone ? ' — أرسليه على ' + q.phone : ''));
+  });
   $$('[data-pin-user]', el).forEach(b => b.onclick = async () => {
     const nm = b.dataset.nm || 'المعلمة';
     const pin = await App.prompt('رقم سري جديد لـ «' + nm + '»', '', 'اكتبي 4 أرقام جديدة، وبلّغي المعلمة فيها');
