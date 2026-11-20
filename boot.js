@@ -108,7 +108,23 @@ async function enter(user) {
   app.classList.remove('auth'); S.uid = user.id; S.email = user.email || '';
   view.innerHTML = `<div class="loader"><div class="spin"></div><span>جارٍ تحميل بياناتك…</span></div>`;
   try { const {data} = await Store.sb.rpc('is_admin'); S.isOwner = !!data; } catch(e) {}
-  if (S.isOwner) setTimeout(async () => { try { const {count} = await Store.sb.from('pin_requests').select('id', {count: 'exact', head: true}); if (count) App.toast(`عندك ${count} طلب رقم سري جديد من المعلمات، تلقينه في لوحة المطور`); } catch(e) {} }, 3000);
+  if (S.isOwner && !App._reqWatch) {
+    App._reqWatch = true;
+    let seen = []; try { seen = JSON.parse(localStorage.getItem('teacherhub:seenReq') || '[]'); } catch(e) {}
+    const checkReqs = async () => {
+      try {
+        const {data, error} = await Store.sb.from('pin_requests').select('*').order('created_at', {ascending: false}).limit(200);
+        if (error) return;
+        const fresh = data.filter(q => !seen.includes(q.id));
+        for (const q of fresh.reverse()) await App.notify({title: '🔑 طلب رقم سري جديد', body: q.name + (q.phone ? ' — جوال: ' + q.phone : '') + '. افتحي لوحة المطور وأعطيها رقم جديد.'}, true);
+        if (fresh.length) { App.toast(fresh.length === 1 ? '🔑 وصلك طلب رقم سري جديد من «' + fresh[0].name + '»' : '🔑 وصلتك ' + fresh.length + ' طلبات رقم سري جديد'); seen = seen.concat(fresh.map(q => q.id)).slice(-500); try { localStorage.setItem('teacherhub:seenReq', JSON.stringify(seen)); } catch(e) {} }
+        App.pinReqs = data; if (App.route() === 'admin') App.flush();
+      } catch(e) {}
+    };
+    setTimeout(checkReqs, 2500); setInterval(checkReqs, 45000);
+    try { Store.sb.channel('pin-requests').on('postgres_changes', {event: 'INSERT', schema: 'public', table: 'pin_requests'}, () => checkReqs()).subscribe(); } catch(e) {}
+    try { if ('Notification' in window && Notification.permission === 'default') setTimeout(() => Notification.requestPermission().catch(() => {}), 4000); } catch(e) {}
+  }
   try { await Store.loadAll(); }
   catch(e) { console.error(e); view.innerHTML = `<div class="onb card">${App.empty('alert', 'تعذّر تحميل بياناتك', 'تحققي من الاتصال بالإنترنت ثم أعيدي المحاولة.', '<button class="btn primary" onclick="location.reload()">إعادة المحاولة</button>')}</div>`; return; }
   Store.live();
