@@ -126,7 +126,7 @@ FILL.open = sc => {
   const imgs = (sc.att || []).map(id => S.files.find(f => f.id === id)).filter(f => f && (f.kind === 'img' || f.kind === 'pdf'));
   let picked = imgs[0] ? {file: imgs[0]} : null; let result = null;
   App.modal({title: FILL.label(method), wide: true, body: `
-    <p class="muted" style="margin-top:0">${method === 'ai' ? 'يقرأ Claude صورة جدولك ويعبّي الحصص والأوقات.' : 'تُقرأ الصورة على جهازك مجانًا.'} ستظهر لك النتيجة لتراجعيها قبل الحفظ.</p>
+    <p class="muted" style="margin-top:0">${method === 'ai' ? 'يقرأ Claude صورة جدولك ويعبّئ الحصص والأوقات.' : 'تُقرأ الصورة على جهازك مجانًا.'} ستظهر لك النتيجة لتراجعيها قبل الحفظ.</p>
     <div class="section"><h4>اختاري صورة الجدول</h4><div class="items" id="fpick">${imgs.map((f, i) => `<label class="item" style="cursor:pointer"><input type="radio" name="fp" value="${f.id}" ${i === 0 ? 'checked' : ''} style="width:20px;height:20px;min-height:0;accent-color:var(--accent)"><span class="ficon ${f.kind}" style="width:32px;height:32px;font-size:9px">${f.kind.toUpperCase()}</span><span class="body t">${esc(f.name)}</span></label>`).join('')}<label class="item" style="cursor:pointer"><input type="radio" name="fp" value="__new" ${imgs.length ? '' : 'checked'} style="width:20px;height:20px;min-height:0;accent-color:var(--accent)"><span class="body"><span class="t">صورة أو PDF من جهازك</span><span class="small muted" id="fnew" style="display:block">لم تُختر بعد</span></span><button type="button" class="btn sm" id="fbrowse">${ic('upload')}اختيار</button></label></div><input type="file" accept="image/*,application/pdf" hidden id="ffile"></div>
     <div class="row wrap"><button type="button" class="btn primary" id="frun">${ic('spark')}قراءة الجدول</button><span class="small muted" id="fprog"></span></div>
     <p class="small muted">${method === 'ocr' ? 'للحصول على أفضل نتيجة: صورة مستقيمة وواضحة ومقصوصة على الجدول، فيها أسماء الأيام وأرقام الحصص.' : 'تُرسل الصورة لخدمة Claude لقراءتها فقط ولا تُحفظ هناك.'}</p>
@@ -163,7 +163,7 @@ FILL.open = sc => {
     result.cells.forEach(c => { cells[c.day + '-' + (c.period - 1)] = {subject: c.subject, grade: c.grade || '', section: c.section || '', note: c.note || ''}; });
     const days = [...new Set((cur.days || []).concat(result.days))].sort((a, b) => a - b);
     await Store.put('schedules', Object.assign({}, cur, {periods, cells, days}));
-    App.toast('تم تعبئة الجدول. اضغطي أي خانة لتعديلها');
+    App.toast('تمت تعبئة الجدول. اضغطي أي خانة لتعديلها');
   }}]});
 };
 function preview(sc, r) {

@@ -77,10 +77,10 @@ App.schedInfo = () => {
 const editSchedule = sc => {
   const s = Object.assign({name:'', kind:'classes', term:'', days:[0,1,2,3,4], periods: defPeriods(), cells:{}, att:[], main: !S.schedules.some(x => x.main)}, sc || {});
   const perRow = (p, i) => `<div class="p"><b class="muted">${i + 1}</b><input type="time" value="${esc(p.start)}" aria-label="بداية"><input type="time" value="${esc(p.end)}" aria-label="نهاية"><button type="button" class="icon-btn sm" data-rmp aria-label="حذف الحصة">${ic('x')}</button></div>`;
-  App.modal({title: sc ? 'إعدادات الجدول' : 'جدول جديد', wide:true, body:`${sc ? '' : `<div class="bn info" style="display:flex;gap:10px;align-items:flex-start;padding:10px 14px;border-radius:10px;background:var(--accent-soft);margin-bottom:16px;font-size:14px">${ic('info')}<span>عندك جدول جاهز صورة أو PDF؟ اكتبي اسم الجدول وارفعيه من خانة «رفع صورة أو PDF للجدول» تحت، ثم اضغطي «حفظ». وتقدرين بعد الحفظ تعبّين الحصص يدويًا بالضغط على خانات الجدول.</span></div>`}<div class="fgrid">
+  App.modal({title: sc ? 'إعدادات الجدول' : 'جدول جديد', wide:true, body:`${sc ? '' : `<div class="bn info" style="display:flex;gap:10px;align-items:flex-start;padding:10px 14px;border-radius:10px;background:var(--accent-soft);margin-bottom:16px;font-size:14px">${ic('info')}<span>هل لديكِ جدول جاهز بصيغة صورة أو PDF؟ اكتبي اسم الجدول وارفعيه من خانة «رفع صورة أو PDF للجدول» أدناه، ثم اضغطي «حفظ». ويمكنكِ بعد الحفظ تعبئة الحصص يدويًا بالضغط على خانات الجدول.</span></div>`}<div class="fgrid">
     <label class="f"><span>اسم الجدول *</span><input id="sn" value="${esc(s.name)}" placeholder="مثال: جدول الفصل الدراسي الأول"></label>
     <label class="f"><span>نوع الجدول</span><select id="sk">${App.opts(SK, s.kind)}</select></label>
-    <label class="f"><span>الفصل / الترم</span><input id="st" value="${esc(s.term)}" placeholder="الفصل الدراسي الأول 1448هـ"></label>
+    <label class="f"><span>الفصل الدراسي</span><input id="st" value="${esc(s.term)}" placeholder="الفصل الدراسي الأول 1448هـ"></label>
     <label class="f" style="justify-content:flex-end"><span class="row"><input type="checkbox" id="sm" ${s.main ? 'checked' : ''}> الجدول الرئيسي (يظهر في لوحة التحكم)</span></label>
     <div class="f full"><span style="font-weight:600">رفع صورة أو PDF للجدول (اختياري)</span>${App.attField(s.att)}</div>
     <div class="f full"><span style="font-weight:600">أيام الدوام</span><div class="chips" id="sdays">${D.DAYS.map((d, i) => `<button type="button" class="chip ${s.days.includes(i) ? 'on' : ''}" data-d="${i}">${d}</button>`).join('')}</div></div>
@@ -119,7 +119,7 @@ const editCell = (sc, d, p) => {
     const m = api.el; const cells = Object.assign({}, sc.cells || {});
     const v = {subject: App.val(m, '#cs'), grade: App.val(m, '#cg'), section: App.val(m, '#cc'), note: App.val(m, '#cn')};
     if (!v.subject) { App.toast('اكتبي اسم المادة أولًا', true); return false; }
-    (sc.days || []).forEach(dd => cells[dd + '-' + p] = Object.assign({}, v)); await Store.put('schedules', Object.assign({}, sc, {cells})); App.toast('تم النسخ لكل الأيام');
+    (sc.days || []).forEach(dd => cells[dd + '-' + p] = Object.assign({}, v)); await Store.put('schedules', Object.assign({}, sc, {cells})); App.toast('تم النسخ إلى كل الأيام');
   }}, '|', {label:'تفريغ', cls:'ghost danger', async onClick() { const cells = Object.assign({}, sc.cells || {}); delete cells[key]; await Store.put('schedules', Object.assign({}, sc, {cells})); }}]});
 };
 const ttHTML = (sc, live) => {
@@ -143,7 +143,7 @@ const exportSchedule = sc => {
 };
 App.view('schedules', {title:'الجداول الدراسية', render(el) {
   const u = App.ui.sched; let sc = S.schedules.find(s => s.id === u.sel) || S.schedules.find(s => s.main) || S.schedules[0];
-  if (!sc) { el.innerHTML = App.empty('grid', 'لا توجد جداول بعد', 'أنشئي جدول الحصص الأسبوعي يدويًا، أو ارفعي صورة/PDF لجدولك وجدول الترم.', `<button class="btn primary" data-new>${ic('plus')}إنشاء جدول</button>`); $('[data-new]', el).onclick = () => editSchedule(); return; }
+  if (!sc) { el.innerHTML = App.empty('grid', 'لا توجد جداول بعد', 'أنشئي جدول الحصص الأسبوعي يدويًا، أو ارفعي صورة/PDF لجدولك وجدول الفصل الدراسي.', `<button class="btn primary" data-new>${ic('plus')}إنشاء جدول</button>`); $('[data-new]', el).onclick = () => editSchedule(); return; }
   u.sel = sc.id;
   const info = App.schedInfo(); const live = info && info.sc.id === sc.id;
   const cur = live && info.today.find(x => x.state === 'now'), nxt = live && info.today.find(x => x.state === 'next');

@@ -48,16 +48,16 @@ App.K = {
   ST: {todo:'لم تبدأ', doing:'قيد التنفيذ', done:'مكتملة'},
   REMIND: [[0,'عند الموعد'],[10,'قبل 10 دقائق'],[30,'قبل 30 دقيقة'],[60,'قبل ساعة'],[180,'قبل 3 ساعات'],[1440,'قبل يوم'],[2880,'قبل يومين'],[10080,'قبل أسبوع'],[-1,'بدون تنبيه'],['c','توقيت مخصص…']],
   EV: {exam:'اختبار', meet:'اجتماع', school:'موعد مدرسي', submit:'تسليم أعمال', activity:'فعالية', occasion:'مناسبة تعليمية', other:'أخرى'},
-  LINK_CATS: [['game','ألعاب تفاعلية','game'],['quiz','مسابقات تعليمية','trophy'],['platform','منصات التعلم','book'],['ai','أدوات الذكاء الاصطناعي','spark'],['slides','عروض تقديمية','slides'],['sheet','أوراق العمل','note'],['exam','اختبارات إلكترونية','check'],['doc','ملفات PDF وWord','file'],['video','فيديوهات تعليمية','video'],['site','مواقع تعليمية','globe'],['other','موارد أخرى','link']],
+  LINK_CATS: [['game','ألعاب تفاعلية','game'],['quiz','مسابقات تعليمية','trophy'],['platform','منصات التعلم','book'],['ai','أدوات الذكاء الاصطناعي','spark'],['slides','عروض تقديمية','slides'],['sheet','أوراق العمل','note'],['exam','اختبارات إلكترونية','check'],['doc','ملفات PDF وWord','file'],['video','مقاطع فيديو تعليمية','video'],['site','مواقع تعليمية','globe'],['other','موارد أخرى','link']],
   STAGES: ['الطفولة المبكرة','رياض الأطفال','المرحلة الابتدائية','المرحلة المتوسطة','المرحلة الثانوية','التعليم الجامعي','أخرى'],
   THEMES: [
-    {id:'light', name:'Minimal Light', ar:'أبيض بسيط', c:['#f6f7f9','#ffffff','#2f5bea','#151a23']},
-    {id:'dark', name:'Midnight Dark', ar:'داكن أنيق', c:['#0f1218','#12151c','#7c9bff','#e9ecf2']},
-    {id:'pastel', name:'Soft Pastel', ar:'باستيل هادئ', c:['#fbf7f2','#f3ece3','#e0786a','#2d2a32']},
-    {id:'lavender', name:'Lavender', ar:'بنفسجي عصري', c:['#f6f4fb','#2a1f4a','#6d4ad8','#1f1a2e']},
-    {id:'ocean', name:'Ocean Blue', ar:'أزرق مريح', c:['#f2f7fa','#0b3b52','#0a7fb0','#0d2633']},
-    {id:'forest', name:'Forest Green', ar:'أخضر هادئ', c:['#f4f6f2','#1d3324','#2f7a4a','#17231a']},
-    {id:'rose', name:'Rose', ar:'وردي أنيق', c:['#fcf5f6','#ffffff','#c4466a','#2a1519']}
+    {id:'light', name:'الأبيض البسيط', ar:'أبيض واحترافي', c:['#f6f7f9','#ffffff','#2f5bea','#151a23']},
+    {id:'dark', name:'الداكن الأنيق', ar:'داكن مريح للعين', c:['#0f1218','#12151c','#7c9bff','#e9ecf2']},
+    {id:'pastel', name:'الباستيل الهادئ', ar:'ألوان هادئة ناعمة', c:['#fbf7f2','#f3ece3','#e0786a','#2d2a32']},
+    {id:'lavender', name:'البنفسجي', ar:'بنفسجي عصري', c:['#f6f4fb','#2a1f4a','#6d4ad8','#1f1a2e']},
+    {id:'ocean', name:'أزرق المحيط', ar:'أزرق مريح', c:['#f2f7fa','#0b3b52','#0a7fb0','#0d2633']},
+    {id:'forest', name:'أخضر الغابة', ar:'أخضر هادئ', c:['#f4f6f2','#1d3324','#2f7a4a','#17231a']},
+    {id:'rose', name:'الوردي', ar:'وردي أنيق', c:['#fcf5f6','#ffffff','#c4466a','#2a1519']}
   ],
   DASH: [['alerts','التنبيهات المهمة'],['stats','ملخص سريع'],['today','مهام اليوم'],['late','الأعمال المتأخرة'],['soon','اقترب موعد تسليمها'],['classes','الحصص القادمة'],['progress','نسبة الإنجاز'],['week','مواعيد الأسبوع'],['quick','اختصارات سريعة'],['qnote','ملاحظات سريعة'],['cats','توزيع المهام']],
   CONFIG: {version:'1.0.0', releases:[], devName:'', copyright:'تطوير وتصميم المنصة', announce:'', maintenance:'', defaultTheme:'light', themes:['light','dark','pastel','lavender','ocean','forest','rose'], allowCustom:true, about:''}
@@ -375,7 +375,7 @@ App.render = (fromData) => {
 };
 window.addEventListener('hashchange', () => { document.getElementById('app').classList.remove('menu-open'); App.render(); });
 
-const NAV = [['dashboard','الرئيسية','home'],['tasks','المهام','check'],['calendar','التقويم','cal'],['schedules','الجداول','grid'],['plans','الخطط والمبادرات','target'],['links','الروابط والموارد','link'],['files','الملفات','folder'],['notes','المفكرة','note'],'-',['notifications','الإشعارات','bell'],['account','حسابي والثيمات','user'],['about','حول المنصة','info']];
+const NAV = [['dashboard','الرئيسية','home'],['tasks','المهام','check'],['calendar','التقويم','cal'],['schedules','الجداول','grid'],['plans','الخطط والمبادرات','target'],['links','الروابط والموارد','link'],['files','الملفات','folder'],['notes','المفكرة','note'],'-',['notifications','الإشعارات','bell'],['account','حسابي والمظهر','user'],['about','حول المنصة','info']];
 App.chrome = () => {
   const cur = App.route(); const un = App.unread();
   const lateN = S.tasks.filter(App.isLate).length;
@@ -421,7 +421,7 @@ App.val = (root, sel) => { const e = $(sel, root); return e ? e.value.trim() : '
 App.dynList = (items, {ph='', check=false, extra} = {}) => `<div class="dyn" data-dyn>${(items || []).map(it => App.dynRow(it, {ph, check, extra})).join('')}</div><button type="button" class="btn sm ghost" data-dyn-add data-ph="${esc(ph)}" data-check="${check ? 1 : ''}" data-extra="${extra || ''}">${ic('plus')}إضافة</button>`;
 App.dynRow = (it, {ph='', check=false, extra} = {}) => {
   it = typeof it === 'string' ? {text: it} : (it || {});
-  return `<div class="dr">${check ? `<input type="checkbox" ${it.done ? 'checked' : ''} aria-label="منجز">` : ''}<input type="text" value="${esc(it.text || '')}" placeholder="${esc(ph)}">${extra === 'date' ? `<input type="date" value="${esc(it.due || '')}" style="max-width:150px" aria-label="التاريخ">` : ''}${extra === 'kpi' ? `<input type="text" data-k="target" value="${esc(it.target || '')}" placeholder="المستهدف" style="max-width:110px"><input type="text" data-k="actual" value="${esc(it.actual || '')}" placeholder="المتحقق" style="max-width:110px">` : ''}<button type="button" class="icon-btn sm" data-dyn-del aria-label="حذف">${ic('x')}</button></div>`;
+  return `<div class="dr${extra === 'link' ? ' lnk' : ''}">${check ? `<input type="checkbox" ${it.done ? 'checked' : ''} aria-label="منجز">` : ''}<input type="text" value="${esc(it.text || '')}" placeholder="${esc(ph)}">${extra === 'date' ? `<input type="date" value="${esc(it.due || '')}" style="max-width:150px" aria-label="التاريخ">` : ''}${extra === 'link' ? `<input type="text" data-k="url" dir="ltr" inputmode="url" value="${esc(it.url || '')}" placeholder="https://…" aria-label="الرابط" style="flex:1.3">` : ''}${extra === 'kpi' ? `<input type="text" data-k="target" value="${esc(it.target || '')}" placeholder="المستهدف" style="max-width:110px"><input type="text" data-k="actual" value="${esc(it.actual || '')}" placeholder="المتحقق" style="max-width:110px">` : ''}<button type="button" class="icon-btn sm" data-dyn-del aria-label="حذف">${ic('x')}</button></div>`;
 };
 App.bindDyn = root => {
   root.addEventListener('click', e => {
@@ -434,11 +434,11 @@ App.bindDyn = root => {
 App.readDyn = (root, sel) => {
   const wrap = sel ? $(sel, root) : root; if (!wrap) return [];
   return $$('.dr', $('[data-dyn]', wrap) || wrap).map(r => {
-    const txt = $('input[type=text]:not([data-k])', r).value.trim(); if (!txt) return null;
+    const txt = $('input[type=text]:not([data-k])', r).value.trim();
     const o = {text: txt}; const cb = $('input[type=checkbox]', r); if (cb) o.done = cb.checked;
     const d = $('input[type=date]', r); if (d) o.due = d.value;
-    $$('[data-k]', r).forEach(k => o[k.dataset.k] = k.value.trim());
-    return o;
+    let extraVal = false; $$('[data-k]', r).forEach(k => { o[k.dataset.k] = k.value.trim(); if (o[k.dataset.k]) extraVal = true; });
+    return (txt || (r.querySelector('[data-k=url]') && extraVal)) ? o : null;
   }).filter(Boolean);
 };
 
@@ -476,7 +476,9 @@ App.ensureFolder = async name => {
   return f.id;
 };
 App.attChips = ids => (ids || []).map(id => S.files.find(f => f.id === id)).filter(Boolean).map(f => `<button type="button" class="chip" data-open-file="${f.id}">${ic('file')}${esc(f.name)}</button>`).join('');
-App.linkChips = links => (links || []).filter(Boolean).map(u => `<a class="chip" href="${esc(App.safeUrl(u))}" target="_blank" rel="noopener">${ic('link')}<span style="direction:ltr">${esc(u.replace(/^https?:\/\//, '').slice(0, 40))}</span></a>`).join('');
+/* task links: either an old plain address or {title, url} */
+App.normLinks = links => (links || []).filter(Boolean).map(l => typeof l === 'string' ? {title: '', url: l} : {title: l.title || '', url: l.url || ''}).filter(l => l.url);
+App.linkChips = links => App.normLinks(links).map(l => `<a class="chip" href="${esc(App.safeUrl(l.url))}" target="_blank" rel="noopener" title="${esc(l.url)}">${ic('link')}${l.title ? `<span>${esc(l.title)}</span>` : `<span style="direction:ltr">${esc(l.url.replace(/^https?:\/\//, '').slice(0, 40))}</span>`}</a>`).join('');
 App.safeUrl = u => { u = String(u || '').trim(); if (!u) return '#'; if (!/^https?:\/\//i.test(u)) u = 'https://' + u; try { const x = new URL(u); return /^https?:$/.test(x.protocol) ? x.href : '#'; } catch(e) { return '#'; } };
 document.addEventListener('click', e => { const b = e.target.closest('[data-open-file]'); if (b) { const f = S.files.find(x => x.id === b.dataset.openFile); if (f && App.previewFile) App.previewFile(f); } });
 })();

@@ -275,6 +275,9 @@ table.tt{border-collapse:collapse;width:100%;min-width:720px}
 .section>h4{margin:0 0 10px;font-size:15px;color:var(--muted);font-weight:600}
 .dyn .dr{display:flex;gap:8px;align-items:center;margin-bottom:8px}
 .dyn .dr input{min-height:40px}
+.dyn .dr.lnk{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 8px;padding:10px;border:1px solid var(--line);border-radius:var(--r-s);background:var(--surface2)}
+.dyn .dr.lnk [data-k=url]{grid-column:1;grid-row:2}
+.dyn .dr.lnk [data-dyn-del]{grid-column:2;grid-row:1/span 2;align-self:center}
 .kv{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:4px 14px;font-size:14.5px}
 .kv dt{color:var(--muted)}
 .kv dd{margin:0}

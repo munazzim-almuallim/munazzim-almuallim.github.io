@@ -136,14 +136,14 @@ App.editTask = (task, preset={}) => {
     <label class="f"><span>الحالة</span><select id="ts">${App.opts(K.ST, t.status)}</select></label>
     <div>${App.remindField(t.remind)}</div>
     <div class="f full"><span style="font-weight:600">المهام الفرعية</span>${App.dynList(t.subs, {ph:'مهمة فرعية', check:true})}</div>
-    <label class="f full"><span>روابط (رابط في كل سطر)</span><textarea id="tl" rows="2" dir="ltr" placeholder="https://">${esc((t.links || []).join('\n'))}</textarea></label>
+    <div class="f full" id="tlinks"><span style="font-weight:600">الروابط <span class="muted small" style="font-weight:500">(اكتبي عنوانًا لكل رابط ليظهر به داخل المهمة)</span></span>${App.dynList(App.normLinks(t.links).map(l => ({text: l.title, url: l.url})), {ph:'عنوان الرابط، مثال: لعبة الكلمات', extra:'link'})}</div>
     <div class="f full"><span style="font-weight:600">المرفقات</span>${App.attField(t.att)}</div>
     <label class="f full"><span>ملاحظات</span><textarea id="tn" rows="3">${esc(t.notes)}</textarea></label>
   </div>`, onMount(m) { App.bindDyn(m); App.bindAtt(m, 'مرفقات المهام'); App.bindRemind(m); },
   foot:[{label:'حفظ المهمة', cls:'primary', icon:'check', async onClick(api) {
     const m = api.el; const title = App.val(m, '#tt'); if (!title) { App.toast('اكتبي عنوان المهمة', true); $('#tt', m).focus(); return false; }
     const d = App.val(m, '#tdd'), tm = App.val(m, '#tdt');
-    const n = Object.assign({}, t, {title, desc: App.val(m, '#td'), due: d ? `${d}T${tm || '23:59'}` : '', pri: $('#tp', m).value, cat: $('#tc', m).value, status: $('#ts', m).value, remind: App.readRemind(m), subs: [], links: App.val(m, '#tl').split(/\n+/).map(s => s.trim()).filter(Boolean), att: App.readAtt(m), notes: App.val(m, '#tn')});
+    const n = Object.assign({}, t, {title, desc: App.val(m, '#td'), due: d ? `${d}T${tm || '23:59'}` : '', pri: $('#tp', m).value, cat: $('#tc', m).value, status: $('#ts', m).value, remind: App.readRemind(m), subs: [], links: App.readDyn($('#tlinks', m)).map(r => { let url = r.url || '', title = r.text || ''; if (!url && /^(https?:\/\/|www\.)|\.[a-z]{2,}(\/|$)/i.test(title)) { url = title; title = ''; } return url ? {title, url: App.safeUrl(url)} : null; }).filter(Boolean), att: App.readAtt(m), notes: App.val(m, '#tn')});
     n.subs = App.readDyn($$('.f.full', m).find(x => x.querySelector('[data-dyn]')));
     if (n.status === 'done' && t.status !== 'done') n.doneAt = Date.now();
     await Store.put('tasks', n); App.toast(task ? 'تم تحديث المهمة' : 'تمت إضافة المهمة');
@@ -186,7 +186,7 @@ App.view('tasks', {title:'المهام', render(el) {
   const u = App.ui.tasks;
   el.innerHTML = `
   <div class="toolbar">
-    <div class="seg" role="tablist">${[['list','قائمة','list'],['kanban','لوحة Kanban','kanban'],['cal','تقويم','cal']].map(([k, l, i]) => `<button data-mode="${k}" class="${u.mode === k ? 'on' : ''}">${ic(i)}${l}</button>`).join('')}</div>
+    <div class="seg" role="tablist">${[['list','قائمة','list'],['kanban','لوحة المراحل','kanban'],['cal','تقويم','cal']].map(([k, l, i]) => `<button data-mode="${k}" class="${u.mode === k ? 'on' : ''}">${ic(i)}${l}</button>`).join('')}</div>
     <div class="search grow">${ic('search')}<input id="tq" placeholder="ابحثي في المهام" value="${esc(u.q)}"></div>
     <button class="btn primary" id="addT">${ic('plus')}مهمة جديدة</button>
   </div>
