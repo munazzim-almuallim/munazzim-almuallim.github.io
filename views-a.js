@@ -50,10 +50,12 @@ App.view('dashboard', {title:'الرئيسية', render(el) {
     </div>
     <div class="card clock"><div class="t" id="clockT">${D.time12(D.hm(now))}</div><div class="d">${esc(D.long(now))}</div><div class="muted small">${esc(D.hijri(now))}</div></div>
   </section>
+  ${App.annStrip ? App.annStrip() : ''}
   <div class="toolbar"><span class="grow"></span><button class="btn sm ghost" id="dashEdit">${ic('sliders')}تخصيص اللوحة</button></div>
   <div class="dash">${order.map(id => cards[id]()).join('')}</div>`;
 
   $('#dashEdit', el).onclick = () => customize(lay);
+  if (App.bindAnn) App.bindAnn(el);
   $$('[data-add]', el).forEach(b => b.onclick = () => App.quickAdd(b.dataset.add));
   $$('[data-seen]', el).forEach(b => b.onclick = () => App.markRead([b.dataset.seen]));
   $$('[data-agenda]', el).forEach(b => b.onclick = () => { const [k, id] = b.dataset.agenda.split(':'); k === 'task' ? App.showTask(id) : App.editEvent(S.events.find(e => e.id === id)); });

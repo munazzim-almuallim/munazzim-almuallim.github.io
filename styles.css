@@ -397,3 +397,26 @@ table.data td.n{text-align:left;font-variant-numeric:tabular-nums}
   #app{display:block;background:#fff;color:#000}
   .main{padding:0}
 }
+
+/* ---------- Developer trial group ---------- */
+.nav-grp{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;opacity:.7;padding:4px 12px 2px}
+.nav-grp svg{width:16px;height:16px}
+/* ---------- Announcements ---------- */
+.ann-strip{display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
+.ann{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border-radius:var(--r);background:var(--accent-soft);border:1px solid var(--accent-line)}
+.ann-ic{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:var(--accent);color:var(--accent-ink);flex:none}
+@media(max-width:600px){.ann{flex-wrap:wrap}.ann .btn{width:100%}}
+/* ---------- Student register ---------- */
+.st-row{align-items:center;flex-wrap:wrap}
+.st-row .body{flex:1 1 160px}
+.st-ctl{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.seg.att button{min-height:34px;padding:5px 10px;font-size:13.5px}
+.seg.att button.on.p{background:var(--ok);color:#fff}
+.seg.att button.on.a{background:var(--danger);color:#fff}
+.seg.att button.on.l{background:var(--warn);color:#fff}
+.seg.att button.on.e{background:var(--accent);color:var(--accent-ink)}
+.pts{display:flex;align-items:center;gap:2px;background:var(--surface2);border-radius:var(--r-s);padding:2px}
+.pts span{display:inline-flex;align-items:center;gap:4px;min-width:44px;justify-content:center;font-variant-numeric:tabular-nums}
+.pts span svg{width:15px;height:15px;color:var(--warn)}
+.pts .icon-btn{font-size:20px;font-weight:700}
+@media(max-width:600px){.st-ctl{width:100%;justify-content:space-between}}

@@ -113,7 +113,7 @@ App.prompt = (title, value='', label='') => new Promise(res => {
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && modals.length) modals[modals.length-1].close(); });
 
 /* ---------- Storage (Supabase in production, browser storage in trial mode) ---------- */
-const COLLS = ['tasks','events','links','lfolders','schedules','plans','notes','files','ffolders','meta','chunks'];
+const COLLS = ['tasks','events','links','lfolders','schedules','plans','notes','files','ffolders','sclasses','attend','meta','chunks'];
 const S = App.S = {mode:'none', uid:null, email:'', isOwner:false, readOnly:false, profile:null, quick:{text:''}, notifs:{items:[]}, config:clone(App.K.CONFIG), loaded:{}};
 COLLS.forEach(c => { if (c !== 'meta') S[c] = []; });
 
@@ -375,11 +375,18 @@ App.render = (fromData) => {
 };
 window.addEventListener('hashchange', () => { document.getElementById('app').classList.remove('menu-open'); App.render(); });
 
+const EXP = [['students','سجل الطلاب','list','students']];
 const NAV = [['dashboard','الرئيسية','home'],['tasks','المهام','check'],['calendar','التقويم','cal'],['schedules','الجداول','grid'],['plans','الخطط والمبادرات','target'],['links','الروابط والموارد','link'],['files','الملفات','folder'],['notes','المفكرة','note'],'-',['notifications','الإشعارات','bell'],['account','حسابي والمظهر','user'],['about','حول المنصة','info']];
 App.chrome = () => {
   const cur = App.route(); const un = App.unread();
   const lateN = S.tasks.filter(App.isLate).length;
-  const nav = NAV.map(n => n === '-' ? '<div class="sep"></div>' : `<a href="#${n[0]}" class="${cur === n[0] ? 'on' : ''}">${ic(n[2])}<span>${n[1]}</span>${n[0] === 'notifications' && un ? `<span class="count">${un}</span>` : n[0] === 'tasks' && lateN ? `<span class="count">${lateN}</span>` : ''}</a>`).join('')
+  /* experimental pages: shown in a separate developer-only group until released to teachers */
+  const feats = (S.config && S.config.features) || {};
+  const released = EXP.filter(e => feats[e[3]]), trial = S.isOwner ? EXP.filter(e => !feats[e[3]]) : [];
+  const navList = NAV.slice(); const at = navList.indexOf('-'); navList.splice(at, 0, ...released);
+  const link = n => `<a href="#${n[0]}" class="${cur === n[0] ? 'on' : ''}">${ic(n[2])}<span>${n[1]}</span>${n[0] === 'notifications' && un ? `<span class="count">${un}</span>` : n[0] === 'tasks' && lateN ? `<span class="count">${lateN}</span>` : ''}</a>`;
+  const nav = navList.map(n => n === '-' ? '<div class="sep"></div>' : link(n)).join('')
+    + (trial.length ? `<div class="sep"></div><div class="nav-grp">${ic('sliders')}تجريبي — يظهر لكِ فقط</div>` + trial.map(link).join('') : '')
     + (S.isOwner ? `<div class="sep"></div><a href="#admin" class="${cur === 'admin' ? 'on' : ''}">${ic('shield')}<span>لوحة المطور</span></a>` : '');
   const navEl = $('#nav'); if (navEl.innerHTML !== nav) navEl.innerHTML = nav;
   const p = S.profile || {};

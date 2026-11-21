@@ -140,7 +140,7 @@ async function enter(user) {
 
 function go() {
   App.banner();
-  const names = ['tasks','events','links','lfolders','schedules','plans','notes','files','ffolders'];
+  const names = ['tasks','events','links','lfolders','schedules','plans','notes','files','ffolders','sclasses','attend'];
   names.forEach(n => Store.watch(n, list => { S[n] = list; S.loaded[n] = true; App.flush(); }));
   if (Store.mode === 'local') Store.watch('chunks', list => { S.chunks = list; });
   Store.watch('meta', list => {
