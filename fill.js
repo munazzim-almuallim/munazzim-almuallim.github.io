@@ -178,8 +178,12 @@ FILL.auto = async (id, src) => {
   autoBusy = true; App.toast('جارٍ قراءة الجدول من الصورة وتعبئته تلقائيًا…');
   try {
     const blob = src.kind ? await App.fileBlob(src) : src;
-    const canvas = await FILL.toCanvas(blob, method === 'ai' ? 1568 : 2400);
-    const result = await (method === 'ai' ? FILL.ai : FILL.ocr)(canvas, () => {});
+    let result;
+    if (method === 'ai') {
+      try { result = await FILL.ai(await FILL.toCanvas(blob, 1568), () => {}); }
+      catch(e) { App.toast('خدمة القراءة الذكية مشغولة، جارٍ القراءة بطريقة أخرى…'); result = null; }
+    }
+    if (!result || !result.cells.length) result = await FILL.ocr(await FILL.toCanvas(blob, 2400), () => {});
     if (!result.cells.length) throw new Error('لم أجد حصصًا في الصورة. يمكنك تعبئة الجدول يدويًا بالضغط على خاناته.');
     const cur = S.schedules.find(x => x.id === id);
     await applyResult(id, result, true, !Object.keys((cur && cur.cells) || {}).length);

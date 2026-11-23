@@ -53,7 +53,7 @@ Deno.serve(async (req) => {
     if (!image || image.length > 7_000_000) return json({ error: "الصورة غير صالحة أو كبيرة جدًا." }, 400);
     if (!["image/jpeg", "image/png", "image/webp", "image/gif"].includes(mediaType)) return json({ error: "نوع الصورة غير مدعوم." }, 400);
 
-    const models = [...new Set([Deno.env.get("GEMINI_MODEL"), "gemini-flash-latest", "gemini-2.5-flash", "gemini-flash-lite-latest", "gemini-2.5-flash-lite"].filter(Boolean))] as string[];
+    const models = [...new Set([Deno.env.get("GEMINI_MODEL"), "gemini-3.8-flash", "gemini-flash-latest", "gemini-3.7-flash", "gemini-3.6-flash", "gemini-3.5-flash", "gemini-3.5-flash-lite", "gemini-flash-lite-latest"].filter(Boolean))] as string[];
     const payload = JSON.stringify({
       contents: [{ role: "user", parts: [
         { inline_data: { mime_type: mediaType, data: image } },
@@ -61,20 +61,20 @@ Deno.serve(async (req) => {
       ] }],
       generationConfig: { responseMimeType: "application/json", maxOutputTokens: 8192 },
     });
-    let r: Response | null = null; let lastStatus = 0; let lastText = "";
+    let r: Response | null = null; let lastStatus = 0; let lastText = ""; let busy = false;
     outer: for (const model of models) {
       for (let attempt = 0; attempt < 2; attempt++) {
         r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
           method: "POST", headers: { "x-goog-api-key": key, "content-type": "application/json" }, body: payload,
         });
         if (r.ok) break outer;
-        lastStatus = r.status; lastText = await r.text(); console.error("gemini", model, r.status, lastText.slice(0, 300));
+        lastStatus = r.status; lastText = await r.text(); if (r.status === 429 || r.status === 503) busy = true; console.error("gemini", model, r.status, lastText.slice(0, 300));
         if (r.status === 400 && /API key/i.test(lastText)) return json({ error: "مفتاح Gemini غير صحيح. راجعي المفتاح في إعدادات Supabase." }, 502);
         if (r.status === 404 || r.status === 400) continue outer;
         await new Promise((res) => setTimeout(res, 1200));
       }
     }
-    if (!r || !r.ok) return json({ error: lastStatus === 429 || lastStatus === 503 ? "خدمة القراءة مشغولة الآن، أعيدي المحاولة بعد قليل." : "تعذّر الاتصال بخدمة القراءة." }, 502);
+    if (!r || !r.ok) return json({ error: busy ? "خدمة القراءة مشغولة الآن، أعيدي المحاولة بعد قليل." : "تعذّر الاتصال بخدمة القراءة." }, 502);
     const out = await r.json();
     const parts = out.candidates?.[0]?.content?.parts ?? [];
     const text: string = parts.filter((p: { text?: string; thought?: boolean }) => p.text && !p.thought).map((p: { text: string }) => p.text).join("");
