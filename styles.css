@@ -207,6 +207,7 @@ label.f>span{color:var(--ink)}
 .month .day.today .num{background:var(--accent);color:var(--accent-ink)}
 .ev{font-size:12px;padding:2px 6px;border-radius:6px;background:var(--accent-soft);color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border-inline-start:3px solid var(--accent);cursor:pointer}
 .ev.task{border-color:var(--warn);background:color-mix(in srgb,var(--warn) 12%,var(--surface))}
+.ev.lesson{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 12%,var(--surface));cursor:pointer}
 .ev.task.done{opacity:.5;text-decoration:line-through}
 .ev.exam{border-color:var(--danger);background:color-mix(in srgb,var(--danger) 10%,var(--surface))}
 .ev.meet{border-color:#7a5af5;background:color-mix(in srgb,#7a5af5 11%,var(--surface))}

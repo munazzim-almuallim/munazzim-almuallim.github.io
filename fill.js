@@ -180,15 +180,21 @@ FILL.auto = async (id, src) => {
     const blob = src.kind ? await App.fileBlob(src) : src;
     let result;
     if (method === 'ai') {
-      try { result = await FILL.ai(await FILL.toCanvas(blob, 1568), () => {}); }
-      catch(e) { App.toast('خدمة القراءة الذكية مشغولة، جارٍ القراءة بطريقة أخرى…'); result = null; }
-    }
-    if (!result || !result.cells.length) result = await FILL.ocr(await FILL.toCanvas(blob, 2400), () => {});
+      const canvas = await FILL.toCanvas(blob, 1568);
+      for (let i = 0; ; i++) {
+        try { result = await FILL.ai(canvas, () => {}); break; }
+        catch(e) {
+          if (i >= 3 || !/مشغولة/.test(e.message || '')) throw e;
+          App.toast('خدمة القراءة مشغولة الآن، ستُعاد المحاولة تلقائيًا بعد قليل…');
+          await new Promise(r => setTimeout(r, 20000));
+        }
+      }
+    } else result = await FILL.ocr(await FILL.toCanvas(blob, 2400), () => {});
     if (!result.cells.length) throw new Error('لم أجد حصصًا في الصورة. يمكنك تعبئة الجدول يدويًا بالضغط على خاناته.');
     const cur = S.schedules.find(x => x.id === id);
     await applyResult(id, result, true, !Object.keys((cur && cur.cells) || {}).length);
     App.toast(`تمت تعبئة الجدول تلقائيًا (${result.cells.length} حصة). راجعيه، واضغطي أي خانة لتعديلها.`);
-  } catch(e) { App.toast('تعذّرت القراءة التلقائية: ' + (e.message || '') , true); }
+  } catch(e) { App.toast('تعذّرت القراءة التلقائية: ' + (e.message || '') + ' يمكنك الضغط على «إعادة القراءة من الصورة» لاحقًا.', true); }
   finally { autoBusy = false; }
 };
 function preview(sc, r) {

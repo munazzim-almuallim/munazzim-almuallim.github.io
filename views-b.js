@@ -30,7 +30,17 @@ const dayItems = d => {
   const tk = S.tasks.filter(t => t.due && D.sameDay(D.parse(t.due), d));
   return {ev, tk};
 };
-const chipsFor = d => { const {ev, tk} = dayItems(d); return ev.map(e => `<div class="ev ${evCls(e.type)}" data-ev="${e.id}" title="${esc(e.title)}">${e.start ? esc(e.start) + ' ' : ''}${esc(e.title)}</div>`).concat(tk.map(t => `<div class="ev task ${t.status === 'done' ? 'done' : ''}" data-tk="${t.id}" title="${esc(t.title)}">${esc(t.title)}</div>`)).concat(App.calExtra ? App.calExtra(d) : []); };
+/* حصص الجدول الرئيسي تظهر في التقويم */
+const lessonsOf = d => {
+  const sc = S.schedules.find(s => s.main && s.kind === 'classes') || S.schedules.find(s => s.kind === 'classes'); if (!sc) return [];
+  const dow = d.getDay(); if (!(sc.days || [0,1,2,3,4]).includes(dow)) return [];
+  return (sc.periods || []).map((p, i) => ({p, i, c: (sc.cells || {})[dow + '-' + i]})).filter(x => x.c && x.c.subject);
+};
+const nLessons = n => n === 1 ? 'حصة واحدة' : n === 2 ? 'حصتان' : n <= 10 ? n + ' حصص' : n + ' حصة';
+const lessonChips = (d, compact) => { const L = lessonsOf(d); if (!L.length) return [];
+  if (compact) return [`<div class="ev lesson" data-lessons title="${esc(L.map(x => 'الحصة ' + (x.i + 1) + ': ' + x.c.subject + (x.c.section ? ' ' + x.c.section : '')).join('، '))}">${nLessons(L.length)}</div>`];
+  return L.map(x => `<div class="ev lesson" data-lessons title="${esc(x.c.subject)}">${esc(D.time12(x.p.start))} · الحصة ${x.i + 1}: ${esc(x.c.subject)}${x.c.section ? ' ' + esc(x.c.section) : ''}</div>`); };
+const chipsFor = d => { const {ev, tk} = dayItems(d); return lessonChips(d, App.ui.cal.mode === 'month').concat(ev.map(e => `<div class="ev ${evCls(e.type)}" data-ev="${e.id}" title="${esc(e.title)}">${e.start ? esc(e.start) + ' ' : ''}${esc(e.title)}</div>`).concat(tk.map(t => `<div class="ev task ${t.status === 'done' ? 'done' : ''}" data-tk="${t.id}" title="${esc(t.title)}">${esc(t.title)}</div>`)).concat(App.calExtra ? App.calExtra(d) : [])); };
 App.view('calendar', {title:'التقويم', render(el) {
   const u = App.ui.cal; const d = u.d;
   const head = `<div class="toolbar"><div class="seg">${[['day','يومي'],['week','أسبوعي'],['month','شهري']].map(([k, l]) => `<button data-cm="${k}" class="${u.mode === k ? 'on' : ''}">${l}</button>`).join('')}</div><span class="grow"></span><div class="row wrap small muted" style="gap:12px"><span><span class="ev" style="display:inline-block;padding:0 8px">موعد</span></span><span><span class="ev exam" style="display:inline-block;padding:0 8px">اختبار</span></span><span><span class="ev meet" style="display:inline-block;padding:0 8px">اجتماع</span></span><span><span class="ev task" style="display:inline-block;padding:0 8px">مهمة</span></span></div><button class="btn primary" id="addE">${ic('plus')}موعد جديد</button></div>`;
@@ -41,7 +51,7 @@ App.view('calendar', {title:'التقويم', render(el) {
     body = `<div class="cal-head"><h2>${esc(D.short(s))} – ${esc(D.short(D.addDays(s, 6)))}</h2><button class="icon-btn" data-nav="-7" aria-label="السابق">${ic('right')}</button><button class="btn sm" data-nav="0">اليوم</button><button class="icon-btn" data-nav="7" aria-label="التالي">${ic('left')}</button></div><div class="week">${[0,1,2,3,4,5,6].map(i => { const x = D.addDays(s, i); return `<div class="wd ${D.sameDay(x, today) ? 'today' : ''}" data-day="${D.ymd(x)}"><h5><span>${D.DAYS[i]}</span><span class="muted">${x.getDate()}</span></h5>${chipsFor(x).join('')}</div>`; }).join('')}</div>`;
   } else {
     const {ev, tk} = dayItems(d);
-    const cx = App.calExtra ? App.calExtra(d) : [];
+    const cx = lessonChips(d, false).concat(App.calExtra ? App.calExtra(d) : []);
     body = `<div class="cal-head"><h2>${esc(D.long(d))}<div class="small muted" style="font-weight:500">${esc(D.hijri(d))}</div></h2><button class="icon-btn" data-nav="-1" aria-label="السابق">${ic('right')}</button><button class="btn sm" data-nav="0">اليوم</button><button class="icon-btn" data-nav="1" aria-label="التالي">${ic('left')}</button></div>
     <div class="card dayview">${cx.length ? `<div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px">${cx.join('')}</div>` : ''}${ev.length || tk.length ? ev.map(e => `<div class="slot"><span class="h">${e.start ? D.time12(e.start) : 'طوال اليوم'}</span><div><div class="ev ${evCls(e.type)}" data-ev="${e.id}" style="font-size:14px;padding:6px 10px;white-space:normal">${esc(e.title)} <span class="muted small">· ${K.EV[e.type] || ''}${e.end ? ' · حتى ' + D.time12(e.end) : ''}</span></div>${e.notes ? `<div class="small muted" style="margin-top:4px">${esc(e.notes)}</div>` : ''}</div></div>`).join('') + tk.map(t => `<div class="slot"><span class="h">${D.time12(D.hm(D.parse(t.due)))}</span><div><div class="ev task ${t.status === 'done' ? 'done' : ''}" data-tk="${t.id}" style="font-size:14px;padding:6px 10px;white-space:normal">مهمة: ${esc(t.title)}</div></div></div>`).join('') : App.empty('cal', 'يوم خالٍ', 'لا مواعيد أو مهام في هذا اليوم.', `<button class="btn primary" data-addday>${ic('plus')}إضافة موعد</button>`)}</div>`;
   }
@@ -55,6 +65,7 @@ App.view('calendar', {title:'التقويم', render(el) {
   $$('[data-ev]', el).forEach(x => x.onclick = e => { e.stopPropagation(); App.editEvent(S.events.find(v => v.id === x.dataset.ev)); });
   $$('[data-tk]', el).forEach(x => x.onclick = e => { e.stopPropagation(); App.showTask(x.dataset.tk); });
   $$('[data-ctk]', el).forEach(x => x.onclick = e => { e.stopPropagation(); App.openClassTask(x.dataset.ctk); });
+  $$('[data-lessons]', el).forEach(x => x.onclick = e => { e.stopPropagation(); location.hash = 'schedules'; });
 }});
 
 /* ================= Schedules ================= */

@@ -62,16 +62,20 @@ Deno.serve(async (req) => {
       generationConfig: { responseMimeType: "application/json", maxOutputTokens: 8192 },
     });
     let r: Response | null = null; let lastStatus = 0; let lastText = ""; let busy = false;
+    const deadline = Date.now() + 120_000;
     outer: for (const model of models) {
-      for (let attempt = 0; attempt < 2; attempt++) {
-        r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
-          method: "POST", headers: { "x-goog-api-key": key, "content-type": "application/json" }, body: payload,
-        });
+      for (let attempt = 0; attempt < 1; attempt++) {
+        if (Date.now() > deadline) break outer;
+        try {
+          r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+            method: "POST", headers: { "x-goog-api-key": key, "content-type": "application/json" }, body: payload,
+            signal: AbortSignal.timeout(Math.max(5_000, Math.min(70_000, deadline - Date.now()))),
+          });
+        } catch (_e) { console.error("gemini", model, "timeout"); busy = true; r = null; continue outer; }
         if (r.ok) break outer;
         lastStatus = r.status; lastText = await r.text(); if (r.status === 429 || r.status === 503) busy = true; console.error("gemini", model, r.status, lastText.slice(0, 300));
         if (r.status === 400 && /API key/i.test(lastText)) return json({ error: "مفتاح Gemini غير صحيح. راجعي المفتاح في إعدادات Supabase." }, 502);
         if (r.status === 404 || r.status === 400) continue outer;
-        await new Promise((res) => setTimeout(res, 1200));
       }
     }
     if (!r || !r.ok) return json({ error: busy ? "خدمة القراءة مشغولة الآن، أعيدي المحاولة بعد قليل." : "تعذّر الاتصال بخدمة القراءة." }, 502);
