@@ -170,8 +170,8 @@ function ready() {
     setInterval(() => { const m = new Date().getMinutes(); if (m !== lastMin) { lastMin = m; if (['dashboard','schedules'].includes(App.route())) App.flush(); } }, 5000);
   }
   if ((!S.profile || !S.profile.name) && pendingName) { const n = pendingName; const pp = pendingProfile || {name: n, loginName: n, createdAt: Date.now()}; pendingName = ''; pendingProfile = null; App.saveProfile(pp).then(() => { App.toast('أهلًا ' + n.split(' ')[0] + '! ستدخلين لاحقًا باسمك ورقمك السري'); }); return; }
-  if (!S.profile || !S.profile.name) { if (window.hideSplash) hideSplash(); App.chrome(); $('#pageTitle').textContent = 'إعداد الحساب'; if (!App._onb) { App._onb = true; App.onboarding(view); } return; }
-  App._onb = false;
+  if (!S.profile || !S.profile.name) { if (window.hideSplash) hideSplash(); app.classList.add('auth'); App.chrome(); $('#pageTitle').textContent = 'إعداد الحساب'; if (!App._onb) { App._onb = true; App.onboarding(view); } return; }
+  App._onb = false; app.classList.remove('auth');
   App.render(true);
   if (window.hideSplash) hideSplash();
 }

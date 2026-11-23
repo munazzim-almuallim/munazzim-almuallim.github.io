@@ -32,6 +32,7 @@ App.view('dashboard', {title:'الرئيسية', render(el) {
     late: () => card('late', 'الأعمال المتأخرة', 'alert', late.length ? `<div class="mini">${late.slice(0, 6).map(miniTask).join('')}</div>${late.length > 6 ? `<p class="small muted">و${late.length - 6} أخرى</p>` : ''}` : small('لا توجد أعمال متأخرة. أحسنتِ!'), '#tasks'),
     soon: () => card('soon', 'اقترب موعد تسليمها', 'clock', soon.length ? `<div class="mini">${soon.slice(0, 6).map(miniTask).join('')}</div>` : small('لا أعمال مستحقة خلال الأيام الثلاثة القادمة.'), '#tasks'),
     classes: () => card('classes', 'الحصص القادمة', 'grid', classesCard(), '#schedules'),
+    myclasses: () => App.classesCard ? card('myclasses', 'فصولي', 'book', App.classesCard(), '#achieve') : '',
     progress: () => card('progress', 'نسبة إنجاز المهام', 'target', total ? `<div class="ring">${ring(pct)}<div><div class="big">${pct}%</div><div class="muted small">${done} مكتملة من ${total}</div><div class="small" style="margin-top:6px">${Object.entries(K.ST).map(([k, l]) => `<div class="row between"><span>${l}</span><b>${S.tasks.filter(t => (t.status || 'todo') === k).length}</b></div>`).join('')}</div></div></div>` : small('أضيفي مهامك لتظهر نسبة الإنجاز هنا.')),
     week: () => card('week', 'مواعيد الأسبوع', 'cal', weekEv.length ? `<div class="mini">${weekEv.slice(0, 8).map(x => `<div class="m" data-agenda="${x.kind}:${x.id}"><span class="badge ${x.kind === 'task' ? 'mid' : 'acc'}">${esc(D.wday(x.date))}</span><span class="t">${esc(x.title)}</span><span class="small muted">${x.time ? D.time12(x.time) : ''}</span></div>`).join('')}</div>` : small('لا مواعيد خلال الأيام السبعة القادمة.', `<button class="btn sm" data-add="event">${ic('plus')}موعد جديد</button>`), '#calendar'),
     quick: () => card('quick', 'اختصارات سريعة', 'plus', `<div class="quick">${[['task','مهمة جديدة','check'],['plan','خطة جديدة','target'],['link','رابط جديد','link'],['file','رفع ملف','upload'],['event','موعد جديد','cal'],['note','ملاحظة جديدة','note']].map(([k, l, i]) => `<button data-add="${k}">${ic(i)}${l}</button>`).join('')}</div>`),
@@ -58,7 +59,7 @@ App.view('dashboard', {title:'الرئيسية', render(el) {
   if (App.bindAnn) App.bindAnn(el);
   $$('[data-add]', el).forEach(b => b.onclick = () => App.quickAdd(b.dataset.add));
   $$('[data-seen]', el).forEach(b => b.onclick = () => App.markRead([b.dataset.seen]));
-  $$('[data-agenda]', el).forEach(b => b.onclick = () => { const [k, id] = b.dataset.agenda.split(':'); k === 'task' ? App.showTask(id) : App.editEvent(S.events.find(e => e.id === id)); });
+  $$('[data-agenda]', el).forEach(b => b.onclick = () => { const [k, id] = b.dataset.agenda.split(':'); k === 'ctask' ? App.openClassTask(id) : k === 'task' ? App.showTask(id) : App.editEvent(S.events.find(e => e.id === id)); });
   const late1 = $('[data-filter-late]', el); if (late1) late1.onclick = () => { App.ui.tasks.st = 'late'; };
   bindMini(el);
   const q = $('#qnote', el);

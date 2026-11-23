@@ -59,7 +59,7 @@ App.K = {
     {id:'forest', name:'أخضر الغابة', ar:'أخضر هادئ', c:['#f4f6f2','#1d3324','#2f7a4a','#17231a']},
     {id:'rose', name:'الوردي', ar:'وردي أنيق', c:['#fcf5f6','#ffffff','#c4466a','#2a1519']}
   ],
-  DASH: [['alerts','التنبيهات المهمة'],['stats','ملخص سريع'],['today','مهام اليوم'],['late','الأعمال المتأخرة'],['soon','اقترب موعد تسليمها'],['classes','الحصص القادمة'],['progress','نسبة الإنجاز'],['week','مواعيد الأسبوع'],['quick','اختصارات سريعة'],['qnote','ملاحظات سريعة'],['cats','توزيع المهام']],
+  DASH: [['alerts','التنبيهات المهمة'],['stats','ملخص سريع'],['today','مهام اليوم'],['late','الأعمال المتأخرة'],['soon','اقترب موعد تسليمها'],['classes','الحصص القادمة'],['myclasses','فصولي'],['progress','نسبة الإنجاز'],['week','مواعيد الأسبوع'],['quick','اختصارات سريعة'],['qnote','ملاحظات سريعة'],['cats','توزيع المهام']],
   CONFIG: {version:'1.0.0', releases:[], devName:'', copyright:'تطوير وتصميم المنصة', announce:'', maintenance:'', defaultTheme:'light', themes:['light','dark','pastel','lavender','ocean','forest','rose'], allowCustom:true, about:''}
 };
 
@@ -376,7 +376,7 @@ App.render = (fromData) => {
 window.addEventListener('hashchange', () => { document.getElementById('app').classList.remove('menu-open'); App.render(); });
 
 const EXP = [['students','سجل الطلاب','list','students']];
-const NAV = [['dashboard','الرئيسية','home'],['tasks','المهام','check'],['calendar','التقويم','cal'],['schedules','الجداول','grid'],['plans','الخطط والمبادرات','target'],['links','الروابط والموارد','link'],['files','الملفات','folder'],['notes','المفكرة','note'],'-',['notifications','الإشعارات','bell'],['account','حسابي والمظهر','user'],['about','حول المنصة','info']];
+const NAV = [['dashboard','الرئيسية','home'],['tasks','المهام','check'],['calendar','التقويم','cal'],['schedules','الجداول','grid'],['plans','الخطط والمبادرات','target'],['links','الروابط والموارد','link'],['files','الملفات','folder'],['notes','المفكرة','note'],['achieve','فصولي','book'],'-',['notifications','الإشعارات','bell'],['account','حسابي والمظهر','user'],['about','حول المنصة','info']];
 App.chrome = () => {
   const cur = App.route(); const un = App.unread();
   const lateN = S.tasks.filter(App.isLate).length;
