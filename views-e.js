@@ -696,13 +696,14 @@ const heroArt = `<svg class="k-art" viewBox="0 0 200 140" aria-hidden="true"><ci
 function stuRender() {
   if (!stuEl) return;
   const me = curStu && stuById(curStu);
-  const backBtn = isTrial() ? `<button class="k-topbtn" data-back>${ic('right')}<span>${ss.get(KROLE) === 'teacher' ? 'واجهة المعلمة' : 'تغيير الحساب'}</span></button>` : '';
+  const toT = isTrial() ? ss.get(KROLE) === 'teacher' : hasTeacherSession();
+  const backBtn = `<button class="k-topbtn" data-back>${ic('right')}<span>${toT ? 'واجهة المعلمة' : (isTrial() ? 'تغيير الحساب' : 'رجوع')}</span></button>`;
   const unread = me ? stuNotifs(me).filter(n => n.at > seenOf(me.id)).length : 0;
   if (me && unread > (lastUnread[me.id] == null ? unread : lastUnread[me.id])) App.toast('🔔 وصلك إشعار جديد');
   if (me) lastUnread[me.id] = unread;
   const top = `<header class="k-top"><div class="k-brand"><span class="k-logo">${ic('trophy')}</span><span><b>مركز إنجاز الطلاب</b><small>من منصة منظّم المعلم</small></span></div><span class="grow"></span>${me ? `<button class="k-bell" data-bell aria-label="الإشعارات${unread ? ' (' + unread + ' جديدة)' : ''}">${ic('bell')}${unread ? `<span dir="ltr">${unread > 9 ? '9+' : unread}</span>` : ''}</button>` : ''}${me ? `<button class="k-topbtn" data-out>${ic('logout')}<span>خروج</span></button>` : ''}${backBtn}</header>`;
   const bindTop = () => {
-    const qb = $('[data-back]', stuEl); if (qb) qb.onclick = () => { if (ss.get(KROLE) === 'teacher') closeStudent(); else { closeStudent(true); showGate('pick'); } };
+    const qb = $('[data-back]', stuEl); if (qb) qb.onclick = () => { if (toT) { if (!isTrial()) ss.set(KROLE, 'teacher'); closeStudent(); } else { ss.set(KROLE, null); closeStudent(true); showGate('pick'); } };
     const qo = $('[data-out]', stuEl); if (qo) qo.onclick = () => { setStu(null); stuCls = null; if (CLOUD()) DB = emptyDB(); stuRender(); };
     const qn = $('[data-bell]', stuEl); if (qn) qn.onclick = () => notifPanel(stuById(curStu));
   };
@@ -911,5 +912,6 @@ function startGate() {
 /* join links: #join-CODE */
 function checkJoin() { const m = /^#join-([A-Za-z0-9]{4,8})$/.exec(location.hash || ''); if (!m) return; try { history.replaceState(null, '', location.pathname + location.search + '#achieve'); } catch(e) {} openStudent(m[1]); }
 window.addEventListener('hashchange', checkJoin);
+App.toGate = () => { ss.set(KROLE, null); closeStudent(true); showGate('pick'); };
 document.addEventListener('DOMContentLoaded', () => { startGate(); checkJoin(); if (isTrial()) App.signOut = trialSignOut; });
 })();
