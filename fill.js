@@ -1,4 +1,4 @@
-/* تعبئة الجدول من صورة: قراءة مجانية (Tesseract) أو بالذكاء الاصطناعي (Claude عبر دالة خادمية) */
+/* تعبئة الجدول من صورة: قراءة مجانية (Tesseract) أو بالذكاء الاصطناعي (Gemini عبر دالة خادمية) */
 'use strict';
 (function(){
 const {$, $$, esc, ic, D, S, Store} = App;
@@ -102,7 +102,7 @@ FILL.ocr = async (canvas, onProg) => {
 };
 FILL.ai = async (canvas, onProg) => {
   if (Store.mode !== 'cloud') throw new Error('القراءة بالذكاء الاصطناعي تعمل بعد ربط المنصة بقاعدة البيانات.');
-  onProg('يقرأ Claude الجدول… قد يستغرق 20–40 ثانية');
+  onProg('يقرأ الذكاء الاصطناعي الجدول… قد يستغرق 10–30 ثانية');
   const b64 = canvas.toDataURL('image/jpeg', 0.9).split(',')[1];
   const {data, error} = await Store.sb.functions.invoke('fill-schedule', {body: {image: b64, mediaType: 'image/jpeg'}});
   if (error) {
@@ -126,10 +126,10 @@ FILL.open = sc => {
   const imgs = (sc.att || []).map(id => S.files.find(f => f.id === id)).filter(f => f && (f.kind === 'img' || f.kind === 'pdf'));
   let picked = imgs[0] ? {file: imgs[0]} : null; let result = null;
   App.modal({title: FILL.label(method), wide: true, body: `
-    <p class="muted" style="margin-top:0">${method === 'ai' ? 'يقرأ Claude صورة جدولك ويعبّئ الحصص والأوقات.' : 'تُقرأ الصورة على جهازك مجانًا.'} ستظهر لك النتيجة لتراجعيها قبل الحفظ.</p>
+    <p class="muted" style="margin-top:0">${method === 'ai' ? 'يقرأ الذكاء الاصطناعي (Gemini) صورة جدولك ويعبّئ الحصص والأوقات.' : 'تُقرأ الصورة على جهازك مجانًا.'} ستظهر لك النتيجة لتراجعيها قبل الحفظ.</p>
     <div class="section"><h4>اختاري صورة الجدول</h4><div class="items" id="fpick">${imgs.map((f, i) => `<label class="item" style="cursor:pointer"><input type="radio" name="fp" value="${f.id}" ${i === 0 ? 'checked' : ''} style="width:20px;height:20px;min-height:0;accent-color:var(--accent)"><span class="ficon ${f.kind}" style="width:32px;height:32px;font-size:9px">${f.kind.toUpperCase()}</span><span class="body t">${esc(f.name)}</span></label>`).join('')}<label class="item" style="cursor:pointer"><input type="radio" name="fp" value="__new" ${imgs.length ? '' : 'checked'} style="width:20px;height:20px;min-height:0;accent-color:var(--accent)"><span class="body"><span class="t">صورة أو PDF من جهازك</span><span class="small muted" id="fnew" style="display:block">لم تُختر بعد</span></span><button type="button" class="btn sm" id="fbrowse">${ic('upload')}اختيار</button></label></div><input type="file" accept="image/*,application/pdf" hidden id="ffile"></div>
     <div class="row wrap"><button type="button" class="btn primary" id="frun">${ic('spark')}قراءة الجدول</button><span class="small muted" id="fprog"></span></div>
-    <p class="small muted">${method === 'ocr' ? 'للحصول على أفضل نتيجة: صورة مستقيمة وواضحة ومقصوصة على الجدول، فيها أسماء الأيام وأرقام الحصص.' : 'تُرسل الصورة لخدمة Claude لقراءتها فقط ولا تُحفظ هناك.'}</p>
+    <p class="small muted">${method === 'ocr' ? 'للحصول على أفضل نتيجة: صورة مستقيمة وواضحة ومقصوصة على الجدول، فيها أسماء الأيام وأرقام الحصص.' : 'تُرسل الصورة إلى خدمة Gemini من Google لقراءتها، فلا ترفعي صورًا فيها بيانات خاصة.'}</p>
     <div id="fres"></div>`,
   onMount(m, api) {
     const fi = $('#ffile', m);
