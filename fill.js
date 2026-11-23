@@ -119,7 +119,7 @@ FILL.ai = async (canvas, onProg) => {
 };
 
 /* ---------- UI ---------- */
-FILL.available = () => { const m = (S.profile || {}).fillMethod; if (m === 'ocr') return 'ocr'; if (m === 'ai' && S.config.aiFill) return 'ai'; return null; };
+FILL.available = () => { const m = (S.profile || {}).fillMode; if (m === 'off') return null; if (m === 'ocr') return 'ocr'; return S.config.aiFill ? 'ai' : null; };
 FILL.label = m => m === 'ai' ? 'تعبئة بالذكاء الاصطناعي' : 'تعبئة تلقائية من صورة';
 FILL.open = sc => {
   const method = FILL.available(); if (!method) return;
