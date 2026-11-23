@@ -102,6 +102,8 @@ const editSchedule = sc => {
     const n = Object.assign({}, s, {name, kind: $('#sk', m).value, term: App.val(m, '#st'), days, periods, main: $('#sm', m).checked, att: App.readAtt(m)});
     if (n.main) for (const o of S.schedules.filter(x => x.main && x.id !== n.id)) await Store.put('schedules', Object.assign({}, o, {main: false}));
     const saved = await Store.put('schedules', n); App.ui.sched.sel = saved.id; App.toast(sc ? 'تم حفظ الجدول' : 'تم إنشاء الجدول. اضغطي أي خانة لإضافة حصة');
+    const newAtt = (n.att || []).filter(x => !(s.att || []).includes(x) || !sc).map(x => S.files.find(f => f.id === x)).find(f => f && (f.kind === 'img' || f.kind === 'pdf'));
+    if (newAtt && App.Fill && !Object.keys(n.cells || {}).length) setTimeout(() => App.Fill.auto(saved.id, newAtt), 300);
   }}, '|', ...(sc ? [{label:'حذف الجدول', cls:'ghost danger', icon:'trash', async onClick() { if (!(await App.confirm('حذف هذا الجدول بكل حصصه؟'))) return false; await Store.del('schedules', sc.id); App.ui.sched.sel = null; App.toast('تم الحذف'); }}] : [])]});
 };
 const editCell = (sc, d, p) => {
@@ -159,7 +161,7 @@ App.view('schedules', {title:'الجداول الدراسية', render(el) {
   ${live && (cur || nxt) ? `<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));margin-bottom:14px">${cur ? `<div class="next-class" style="margin:0;background:var(--accent);color:var(--accent-ink)"><span class="n" style="color:inherit">${cur.n}</span><div><b>الآن: ${esc(cur.cell.subject)}</b><div class="small" style="opacity:.85">تنتهي ${D.time12(cur.end)}</div></div></div>` : ''}${nxt ? `<div class="next-class" style="margin:0"><span class="n">${nxt.n}</span><div><b>القادمة: ${esc(nxt.cell.subject)} · ${D.time12(nxt.start)}</b><div class="small"><span class="cd soon">بعد ${D.dur(nxt.ms).replace('متبقٍ ', '')}</span></div></div></div>` : ''}</div>` : ''}
   ${noCells ? ATT : ''}
   <div class="tt-wrap">${ttHTML(sc, true)}</div>
-  <p class="small muted">اضغطي على أي خانة لإضافة المادة والصف والفصل والملاحظات. تُميَّز الحصة الحالية بلون كامل والقادمة بإطار.${noCells && !(App.Fill && App.Fill.available()) ? ' ولتعبئة الجدول تلقائيًا من صورة، فعّلي الميزة من <a href="#account">حسابي</a>.' : ''}</p>
+  <p class="small muted">اضغطي على أي خانة لإضافة المادة والصف والفصل والملاحظات. تُميَّز الحصة الحالية بلون كامل والقادمة بإطار.${noCells ? ' ولتعبئته تلقائيًا ارفعي صورة جدولك من زر «رفع صورة/PDF».' : ''}</p>
   ${noCells ? '' : ATT}
 `;
   $$('[data-sel]', el).forEach(b => b.onclick = () => { u.sel = b.dataset.sel; App.render(); });
@@ -172,7 +174,7 @@ App.view('schedules', {title:'الجداول الدراسية', render(el) {
   $('#schFile', el).onchange = async e => {
     const files = Array.from(e.target.files); e.target.value = ''; const ids = [];
     for (const f of files) { try { App.toast('جارٍ رفع ' + f.name); const folder = await App.ensureFolder('الجداول الدراسية'); ids.push((await App.uploadFile(f, folder)).id); } catch(err) { App.toast(err.message, true); } }
-    if (ids.length) { const cur2 = S.schedules.find(x => x.id === sc.id) || sc; await Store.put('schedules', Object.assign({}, cur2, {att: (cur2.att || []).concat(ids)})); App.toast('تم رفع الجدول وحفظه'); }
+    if (ids.length) { const cur2 = S.schedules.find(x => x.id === sc.id) || sc; await Store.put('schedules', Object.assign({}, cur2, {att: (cur2.att || []).concat(ids)})); App.toast('تم رفع الجدول وحفظه'); if (App.Fill) App.Fill.auto(sc.id, files.find(f => /^image\/|pdf/i.test(f.type || ''))); }
   };
   $$('[data-cell]', el).forEach(td => td.onclick = () => { const [d, p] = td.dataset.cell.split('-').map(Number); editCell(sc, d, p); });
   $$('[data-dl]', el).forEach(b => b.onclick = () => App.downloadFile(S.files.find(f => f.id === b.dataset.dl)));

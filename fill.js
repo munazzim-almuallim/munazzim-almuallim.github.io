@@ -119,8 +119,8 @@ FILL.ai = async (canvas, onProg) => {
 };
 
 /* ---------- UI ---------- */
-FILL.available = () => { const m = (S.profile || {}).fillMode; if (m === 'off') return null; if (m === 'ocr') return 'ocr'; return S.config.aiFill ? 'ai' : null; };
-FILL.label = m => m === 'ai' ? 'تعبئة بالذكاء الاصطناعي' : 'تعبئة تلقائية من صورة';
+FILL.available = () => S.config.aiFill && Store.mode === 'cloud' ? 'ai' : 'ocr';
+FILL.label = () => 'إعادة القراءة من الصورة';
 FILL.open = sc => {
   const method = FILL.available(); if (!method) return;
   const imgs = (sc.att || []).map(id => S.files.find(f => f.id === id)).filter(f => f && (f.kind === 'img' || f.kind === 'pdf'));
@@ -155,16 +155,37 @@ FILL.open = sc => {
   },
   foot: [{label: 'تطبيق على الجدول', cls: 'primary', icon: 'check', async onClick(api) {
     if (!result) return false;
-    const m = api.el; const cur = S.schedules.find(x => x.id === sc.id) || sc;
-    const useTimes = $('#fTimes', m) && $('#fTimes', m).checked && result.periods.length;
-    let periods = useTimes ? result.periods.slice() : (cur.periods || []).slice();
-    while (periods.length < result.periodCount) { const last = periods[periods.length - 1] || {end: '07:00'}; const s = D.mins(last.end); periods.push({start: last.end, end: toHM(Math.floor((s + 45) / 60), (s + 45) % 60)}); }
-    const cells = $('#fRepl', m) && $('#fRepl', m).checked ? {} : Object.assign({}, cur.cells || {});
-    result.cells.forEach(c => { cells[c.day + '-' + (c.period - 1)] = {subject: c.subject, grade: c.grade || '', section: c.section || '', note: c.note || ''}; });
-    const days = [...new Set((cur.days || []).concat(result.days))].sort((a, b) => a - b);
-    await Store.put('schedules', Object.assign({}, cur, {periods, cells, days}));
+    const m = api.el;
+    await applyResult(sc.id, result, !!($('#fTimes', m) && $('#fTimes', m).checked), !!($('#fRepl', m) && $('#fRepl', m).checked));
     App.toast('تمت تعبئة الجدول. اضغطي أي خانة لتعديلها');
   }}]});
+};
+async function applyResult(id, result, useTimes, replace) {
+  const cur = S.schedules.find(x => x.id === id); if (!cur) return;
+  let periods = useTimes && result.periods.length ? result.periods.slice() : (cur.periods || []).slice();
+  while (periods.length < result.periodCount) { const last = periods[periods.length - 1] || {end: '07:00'}; const s = D.mins(last.end); periods.push({start: last.end, end: toHM(Math.floor((s + 45) / 60), (s + 45) % 60)}); }
+  const cells = replace ? {} : Object.assign({}, cur.cells || {});
+  result.cells.forEach(c => { cells[c.day + '-' + (c.period - 1)] = {subject: c.subject, grade: c.grade || '', section: c.section || '', note: c.note || ''}; });
+  const days = [...new Set((cur.days || []).concat(result.days))].sort((a, b) => a - b);
+  await Store.put('schedules', Object.assign({}, cur, {periods, cells, days}));
+}
+/* قراءة تلقائية فور رفع صورة الجدول: تُعبّأ الحصص والأوقات مباشرة، وتبقى الخانات قابلة للتعديل */
+let autoBusy = false;
+FILL.auto = async (id, src) => {
+  const method = FILL.available(); if (!method || autoBusy || !src) return;
+  const kind = src.kind || (/pdf/i.test(src.type || '') ? 'pdf' : /^image\//i.test(src.type || '') ? 'img' : '');
+  if (kind !== 'img' && kind !== 'pdf') return;
+  autoBusy = true; App.toast('جارٍ قراءة الجدول من الصورة وتعبئته تلقائيًا…');
+  try {
+    const blob = src.kind ? await App.fileBlob(src) : src;
+    const canvas = await FILL.toCanvas(blob, method === 'ai' ? 1568 : 2400);
+    const result = await (method === 'ai' ? FILL.ai : FILL.ocr)(canvas, () => {});
+    if (!result.cells.length) throw new Error('لم أجد حصصًا في الصورة. يمكنك تعبئة الجدول يدويًا بالضغط على خاناته.');
+    const cur = S.schedules.find(x => x.id === id);
+    await applyResult(id, result, true, !Object.keys((cur && cur.cells) || {}).length);
+    App.toast(`تمت تعبئة الجدول تلقائيًا (${result.cells.length} حصة). راجعيه، واضغطي أي خانة لتعديلها.`);
+  } catch(e) { App.toast('تعذّرت القراءة التلقائية: ' + (e.message || '') , true); }
+  finally { autoBusy = false; }
 };
 function preview(sc, r) {
   const days = [...new Set(r.days.concat(r.cells.map(c => c.day)))].sort((a, b) => a - b);
