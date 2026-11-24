@@ -53,29 +53,32 @@ Deno.serve(async (req) => {
     if (!image || image.length > 7_000_000) return json({ error: "الصورة غير صالحة أو كبيرة جدًا." }, 400);
     if (!["image/jpeg", "image/png", "image/webp", "image/gif"].includes(mediaType)) return json({ error: "نوع الصورة غير مدعوم." }, 400);
 
-    const models = [...new Set([Deno.env.get("GEMINI_MODEL"), "gemini-3.8-flash", "gemini-flash-latest", "gemini-3.7-flash", "gemini-3.6-flash", "gemini-3.5-flash", "gemini-3.5-flash-lite", "gemini-flash-lite-latest"].filter(Boolean))] as string[];
-    const payload = JSON.stringify({
+    const models = [...new Set([Deno.env.get("GEMINI_MODEL"), "gemini-3.6-flash", "gemini-3.5-flash", "gemini-3.5-flash-lite", "gemini-3.7-flash", "gemini-3.8-flash", "gemini-flash-latest", "gemini-flash-lite-latest"].filter(Boolean))] as string[];
+    const mk = (fast: boolean) => JSON.stringify({
       contents: [{ role: "user", parts: [
         { inline_data: { mime_type: mediaType, data: image } },
         { text: PROMPT },
       ] }],
-      generationConfig: { responseMimeType: "application/json", maxOutputTokens: 8192 },
+      generationConfig: { responseMimeType: "application/json", maxOutputTokens: 8192, ...(fast ? { thinkingConfig: { thinkingLevel: "low" } } : {}) },
     });
+    let fast = true;
     let r: Response | null = null; let lastStatus = 0; let lastText = ""; let busy = false;
     const deadline = Date.now() + 120_000;
     outer: for (const model of models) {
-      for (let attempt = 0; attempt < 1; attempt++) {
+      for (let attempt = 0; attempt < 2; attempt++) {
         if (Date.now() > deadline) break outer;
         try {
           r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
-            method: "POST", headers: { "x-goog-api-key": key, "content-type": "application/json" }, body: payload,
+            method: "POST", headers: { "x-goog-api-key": key, "content-type": "application/json" }, body: mk(fast),
             signal: AbortSignal.timeout(Math.max(5_000, Math.min(70_000, deadline - Date.now()))),
           });
         } catch (_e) { console.error("gemini", model, "timeout"); busy = true; r = null; continue outer; }
-        if (r.ok) break outer;
+        if (r.ok) { console.log("gemini ok", model, fast ? "fast" : ""); break outer; }
         lastStatus = r.status; lastText = await r.text(); if (r.status === 429 || r.status === 503) busy = true; console.error("gemini", model, r.status, lastText.slice(0, 300));
         if (r.status === 400 && /API key/i.test(lastText)) return json({ error: "مفتاح Gemini غير صحيح. راجعي المفتاح في إعدادات Supabase." }, 502);
+        if (r.status === 400 && fast && /thinking/i.test(lastText)) { fast = false; continue; }
         if (r.status === 404 || r.status === 400) continue outer;
+        continue outer;
       }
     }
     if (!r || !r.ok) return json({ error: busy ? "خدمة القراءة مشغولة الآن، أعيدي المحاولة بعد قليل." : "تعذّر الاتصال بخدمة القراءة." }, 502);
